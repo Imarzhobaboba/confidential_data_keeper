@@ -1,0 +1,11 @@
+.env
+alembic.ini
+alembic
+.venv
+poetry.lock
+pyproject.toml
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+.python-version
