@@ -2,7 +2,6 @@ from sqlalchemy import text, select, insert, delete, func
 from sqlalchemy.orm import Session
 from fastapi import HTTPException, status
 from sqlalchemy.exc import IntegrityError
-from datetime import datetime, timedelta
 
 from secret.models import SecretModel
 from secret.schemas import SecretSchema, SecretCreateSchema

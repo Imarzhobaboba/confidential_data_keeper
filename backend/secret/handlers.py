@@ -4,7 +4,6 @@ from secret.schemas import SecretCreateSchema
 from secret.service import SecretService
 import dependency
 
-# from secret.scheduler import scheduler_manager
 
 router = APIRouter(prefix='/secret', tags=['secret'])
 
@@ -16,13 +15,6 @@ async def create_secret(
     access_key = secret_service.create_secret_and_return_access_key(body=secret_schema)
     return {'access_key': access_key}    
 
-# @router.get('/get_by_id/{id}')
-# async def get_secret_by_id(
-#     secret_service: Annotated[SecretService, Depends(dependency=dependency.secret_service_dep)],
-#     id: int
-# ):
-#     secret = secret_service.get_secret_by_id(id=id)
-#     return {'secret': secret}
 
 @router.get('/get_by_access_key/{access_key}')
 async def get_secret_by_access_key(
@@ -31,6 +23,7 @@ async def get_secret_by_access_key(
 ):
     secret = secret_service.get_secret_by_access_key(access_key=access_key)
     return {'secret': secret}
+
 
 @router.delete('/{access_key}')
 async def delete_secret(

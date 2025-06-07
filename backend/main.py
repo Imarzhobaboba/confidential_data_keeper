@@ -1,18 +1,11 @@
 from fastapi import FastAPI
 
 from secret.handlers import router as secret_router
-from secret.service.scheduler import start_scheduler
-
-# @asynccontextmanager
-# async def lifespan(app: FastAPI):
-#     # Инициализация планировщика
-#     scheduler_manager.init(engine)
-#     yield
-#     # Остановка при завершении
-#     scheduler_manager.safe_shutdown()
+from infrastructure.scheduler import start_scheduler
 
 
 app = FastAPI()
+
 
 @app.on_event("startup")
 def startup_event():

@@ -1,6 +1,5 @@
 from fastapi import HTTPException
 
-from datetime import datetime, timedelta
 from dataclasses import dataclass
 from uuid import uuid4
 
@@ -9,11 +8,8 @@ from secret.repository.cache import SecretCacheRepository
 from secret.schemas import SecretSchema, SecretCreateSchema
 
 from secret.service.crypto import encrypt, decrypt
-from secret.service.scheduler import schedule_secret_deletion
+from infrastructure.scheduler import scheduler, schedule_secret_deletion
 
-import logging
-
-logger = logging.getLogger(__name__)
 
 @dataclass
 class SecretService:
@@ -27,11 +23,11 @@ class SecretService:
     def get_secret_by_access_key(self, access_key: str) -> str:
         if secret := self.secret_cache_repository.get_secret_by_access_key(access_key=access_key):
             encrypted_secret = decrypt(secret)
-            print('\n \n from redis \n \n')
+            print('\n from redis \n')
             return encrypted_secret
         if secret := self.secret_repository.get_secret_by_access_key(access_key=access_key):
             encrypted_secret = decrypt(secret)
-            print('\n \n from postgres \n \n')
+            print('\n from postgres \n')
             return encrypted_secret
         else:
             raise HTTPException(status_code=404)
@@ -47,7 +43,7 @@ class SecretService:
         try:
             schedule_secret_deletion(access_key=access_key, ttl_seconds=body.ttl_seconds)
         except Exception as e:
-            logger.error(f"Secret created but scheduling failed: {e}")
+            print(f"Secret created but scheduling failed: {e}")
             # Можно добавить запись в очередь для повторной попытки
         
         return access_key
@@ -57,8 +53,8 @@ class SecretService:
             self.secret_repository.delete_secret(access_key=access_key)
             self.secret_cache_repository.delete_secret_by_access_key(access_key=access_key)
             # Отменяем запланированное удаление от APScheduler
-            # job_id = f"secret_{access_key}"
-            # if scheduler.get_job(job_id):
-            #     scheduler.remove_job(job_id)
+            job_id = f"delete_secret_{access_key}"
+            if scheduler.get_job(job_id):
+                scheduler.remove_job(job_id)
         except:
             raise HTTPException(status_code=404)
