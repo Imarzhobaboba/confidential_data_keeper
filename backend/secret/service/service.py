@@ -2,6 +2,7 @@ from fastapi import HTTPException
 
 from dataclasses import dataclass
 from uuid import uuid4
+import logging
 
 from secret.repository.postgres import SecretRepository
 from secret.repository.cache import SecretCacheRepository
@@ -23,11 +24,11 @@ class SecretService:
     def get_secret_by_access_key(self, access_key: str) -> str:
         if secret := self.secret_cache_repository.get_secret_by_access_key(access_key=access_key):
             encrypted_secret = decrypt(secret)
-            print('\n from redis \n')
+            # print('\n from redis \n')
             return encrypted_secret
         if secret := self.secret_repository.get_secret_by_access_key(access_key=access_key):
             encrypted_secret = decrypt(secret)
-            print('\n from postgres \n')
+            # print('\n from postgres \n')
             return encrypted_secret
         else:
             raise HTTPException(status_code=404)
@@ -36,9 +37,8 @@ class SecretService:
         body.secret = encrypt(body.secret)
         access_key = str(uuid4())
 
-        returned_schema = self.secret_repository.create_secret(body=body, access_key=access_key)
+        self.secret_repository.create_secret(body=body, access_key=access_key)
         self.secret_cache_repository.set_secret(access_key=access_key, secret=body)
-        returned_access_key = returned_schema.access_key
 
         try:
             schedule_secret_deletion(access_key=access_key, ttl_seconds=body.ttl_seconds)

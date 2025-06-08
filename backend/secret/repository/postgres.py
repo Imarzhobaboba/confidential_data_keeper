@@ -3,7 +3,7 @@ from sqlalchemy.orm import Session
 from fastapi import HTTPException, status
 from sqlalchemy.exc import IntegrityError
 
-from secret.models import SecretModel
+from infrastructure.models import SecretModel
 from secret.schemas import SecretSchema, SecretCreateSchema
 
 class SecretRepository:
@@ -34,7 +34,7 @@ class SecretRepository:
             if secret_schema := session.execute(query).scalar_one_or_none():
                 return secret_schema.secret
     
-    def create_secret(self, body: SecretCreateSchema, access_key) -> SecretSchema:
+    def create_secret(self, body: SecretCreateSchema, access_key) -> None:
         query = (
             insert(SecretModel)
             .values(
@@ -42,13 +42,10 @@ class SecretRepository:
                 access_key = access_key,
                 expires_at=func.now() + text(f"interval '{body.ttl_seconds} seconds'"),
             )
-            .returning(SecretModel)
         )
         with self.db_session as session:
-            returned_model = session.execute(query).scalar_one_or_none()
-            secret_schema = SecretSchema.model_validate(returned_model.__dict__)
+            session.execute(query)
             session.commit()
-            return secret_schema
         
 
     def delete_secret(self, access_key: str) -> None:

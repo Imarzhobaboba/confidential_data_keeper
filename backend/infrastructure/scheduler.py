@@ -3,7 +3,7 @@ from apscheduler.jobstores.sqlalchemy import SQLAlchemyJobStore
 from datetime import datetime, timedelta
 from sqlalchemy import delete, select
 from sqlalchemy.orm import Session
-from secret.models import SecretModel
+from infrastructure.models import SecretModel
 from infrastructure.database import SessionLocal
 from config import settings
 

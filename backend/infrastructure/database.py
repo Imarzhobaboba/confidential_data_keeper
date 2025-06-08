@@ -1,6 +1,5 @@
 from sqlalchemy import create_engine, MetaData
 from sqlalchemy.orm import sessionmaker
-from secret.models import Base
 from config import settings
 
 DATABASE_URL = settings.DATABASE_URL
@@ -15,7 +14,3 @@ def get_db():
         yield db
     finally:
         db.close()
-
-Base.metadata.create_all(bind=engine)
-
-

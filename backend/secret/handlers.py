@@ -16,7 +16,7 @@ async def create_secret(
     return {'access_key': access_key}    
 
 
-@router.get('/get_by_access_key/{access_key}')
+@router.get('/{access_key}')
 async def get_secret_by_access_key(
     secret_service: Annotated[SecretService, Depends(dependency=dependency.secret_service_dep)],
     access_key: str
@@ -32,12 +32,3 @@ async def delete_secret(
 ) -> Response:
     secret_service.delete_secret(access_key=access_key)
     return Response(status_code=204)
-
-# @router.get("/scheduler/check/{access_key}")
-# def check_job(access_key: str):
-#     from secret.scheduler import scheduler
-#     job = scheduler.get_job(f"secret_{access_key}")
-#     return {
-#         "exists": job is not None,
-#         "next_run": job.next_run_time if job else None
-#     }
