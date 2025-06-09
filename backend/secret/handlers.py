@@ -1,6 +1,6 @@
 from fastapi import APIRouter, Depends, Response
 from typing import Annotated
-from secret.schemas import SecretCreateSchema
+from secret.schemas import SecretCreateSchema, SecretUpdateSchema
 from secret.service import SecretService
 import dependency
 
@@ -25,10 +25,19 @@ async def get_secret_by_access_key(
     return {'secret': secret}
 
 
+@router.patch('/{access_key}')
+async def update_secret(
+    secret_schema: SecretUpdateSchema,
+    secret_service: Annotated[SecretService, Depends(dependency=dependency.secret_service_dep)]
+):
+    secret_service.update_secret(body=secret_schema)
+    return {'data': 'secret is updated'}
+
+
 @router.delete('/{access_key}')
 async def delete_secret(
     secret_service: Annotated[SecretService, Depends(dependency=dependency.secret_service_dep)],
     access_key: str
-) -> Response:
+) -> None:
     secret_service.delete_secret(access_key=access_key)
     return Response(status_code=204)

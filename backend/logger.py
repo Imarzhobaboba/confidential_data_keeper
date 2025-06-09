@@ -5,6 +5,9 @@ from infrastructure.models import RequestLog
 
 async def log_request(request: Request, call_next, db: Session):
     response = await call_next(request)
+
+    if request.url.path.startswith(("/docs", "/openapi.json", "/redoc")):
+        return response
     
     log = RequestLog(
         ip=request.client.host if request.client else "unknown",

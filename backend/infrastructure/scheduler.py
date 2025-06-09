@@ -43,6 +43,18 @@ def schedule_secret_deletion(access_key: str, ttl_seconds: int):
         misfire_grace_time=3600,
         replace_existing=True
     )
+    
+def update_schedule(access_key: str, additional_ttl_seconds: int):
+    job_id = f"delete_secret_{access_key}"
+    job = scheduler.get_job(job_id)
+    if not job:
+        raise ValueError(f"No scheduled deletion found for secret {access_key}")
+    new_run_time = job.next_run_time + timedelta(seconds=additional_ttl_seconds)
+    scheduler.reschedule_job(
+        job_id,
+        trigger='date',
+        run_date=new_run_time
+    )
 
 def cleanup_expired_secrets():
     """Очистка просроченных секретов при запуске"""

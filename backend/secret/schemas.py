@@ -1,5 +1,6 @@
 from pydantic import BaseModel, Field
 from datetime import datetime
+from typing import Optional
 
 class SecretCreateSchema(BaseModel):
     secret: str
@@ -12,3 +13,8 @@ class SecretSchema(BaseModel):
 
     class Config:
         from_attributes = True
+
+class SecretUpdateSchema(BaseModel):
+    access_key: str
+    secret: str
+    additional_ttl_seconds: Optional[int] = Field(default=None, gt=0, description="Количество секунд должно быть положительным")

@@ -3,7 +3,7 @@ from fastapi import FastAPI, Request
 from secret.handlers import router as secret_router
 from infrastructure.scheduler import start_scheduler
 from infrastructure.database import get_db
-from logs.logger import log_request
+from logger import log_request
 
 
 app = FastAPI()
