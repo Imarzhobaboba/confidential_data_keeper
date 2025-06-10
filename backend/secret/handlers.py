@@ -27,10 +27,11 @@ async def get_secret(
 
 @router.patch('/{access_key}')
 async def update_secret(
+    access_key: str,
     secret_schema: SecretUpdateSchema,
     secret_service: Annotated[SecretService, Depends(dependency=dependency.secret_service_dep)]
 ):
-    secret_service.update_secret(body=secret_schema)
+    secret_service.update_secret(access_key=access_key, body=secret_schema)
     return Response(status_code=204)
 
 

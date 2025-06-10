@@ -33,18 +33,18 @@ class SecretRepository:
                 session.commit()
                 return result
             
-    def update_secret(self, body: SecretUpdateSchema) -> SecretSchema | None:
+    def update_secret(self, access_key: str, body: SecretUpdateSchema) -> SecretSchema | None:
         if body.additional_ttl_seconds is None:
             query = (
                 update(SecretModel)
-                .where(SecretModel.access_key == body.access_key)
+                .where(SecretModel.access_key == access_key)
                 .values(secret=body.secret)
                 .returning(SecretModel)
             )
         else: 
             query = (
                 update(SecretModel)
-                .where(SecretModel.access_key == body.access_key)
+                .where(SecretModel.access_key == access_key)
                 .values(secret=body.secret, expires_at=SecretModel.expires_at + text(f"interval '{body.additional_ttl_seconds} seconds'"))
                 .returning(SecretModel)
             )
