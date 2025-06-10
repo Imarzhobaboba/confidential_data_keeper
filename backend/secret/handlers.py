@@ -17,7 +17,7 @@ async def create_secret(
 
 
 @router.get('/{access_key}')
-async def get_secret_by_access_key(
+async def get_secret(
     secret_service: Annotated[SecretService, Depends(dependency=dependency.secret_service_dep)],
     access_key: str
 ):
@@ -31,7 +31,7 @@ async def update_secret(
     secret_service: Annotated[SecretService, Depends(dependency=dependency.secret_service_dep)]
 ):
     secret_service.update_secret(body=secret_schema)
-    return {'data': 'secret is updated'}
+    return Response(status_code=204)
 
 
 @router.delete('/{access_key}')
@@ -41,3 +41,11 @@ async def delete_secret(
 ) -> None:
     secret_service.delete_secret(access_key=access_key)
     return Response(status_code=204)
+
+@router.get('/lifetime/{access_key}')
+async def get_secret_lifetime(
+    secret_service: Annotated[SecretService, Depends(dependency=dependency.secret_service_dep)],
+    access_key: str
+):
+    expires_at = secret_service.get_secret_lifetime(access_key=access_key)
+    return {'data': expires_at}

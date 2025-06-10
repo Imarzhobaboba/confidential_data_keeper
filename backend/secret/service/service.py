@@ -2,11 +2,11 @@ from fastapi import HTTPException
 
 from dataclasses import dataclass
 from uuid import uuid4
-import logging
+from datetime import datetime
 
 from secret.repository.postgres import SecretRepository
 from secret.repository.cache import SecretCacheRepository
-from secret.schemas import SecretSchema, SecretCreateSchema, SecretUpdateSchema
+from secret.schemas import SecretCreateSchema, SecretUpdateSchema
 
 from secret.service.crypto import encrypt, decrypt
 from infrastructure.scheduler import scheduler, schedule_secret_deletion, update_schedule
@@ -69,5 +69,11 @@ class SecretService:
             job_id = f"delete_secret_{access_key}"
             if scheduler.get_job(job_id):
                 scheduler.remove_job(job_id)
+        else:
+            raise HTTPException(status_code=404)
+    
+    def get_secret_lifetime(self, access_key: str) -> datetime | None:
+        if secret_schema := self.secret_repository.get_secret(access_key=access_key):
+            return secret_schema.expires_at
         else:
             raise HTTPException(status_code=404)
