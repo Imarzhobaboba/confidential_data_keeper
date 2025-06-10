@@ -46,7 +46,7 @@ const UpdateSecret = () => {
         <Form.Item
           name="secret"
           label="New Secret Value"
-          rules={[{ required: true, message: 'Please enter new secret' }]}
+          // rules={[{ required: true, message: 'Please enter new secret' }]}
         >
           <Input.TextArea rows={4} placeholder="Enter new secret value" />
         </Form.Item>

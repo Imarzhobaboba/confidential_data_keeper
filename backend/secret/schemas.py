@@ -15,5 +15,5 @@ class SecretSchema(BaseModel):
         from_attributes = True
 
 class SecretUpdateSchema(BaseModel):
-    secret: str
+    secret: Optional[str] = Field(default=None)
     additional_ttl_seconds: Optional[int] = Field(default=None, gt=0, le=2592000, description="Количество секунд должно быть положительным")

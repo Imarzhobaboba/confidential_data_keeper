@@ -49,17 +49,22 @@ class SecretService:
             raise HTTPException(status_code=503)
         
     def update_secret(self, access_key: str, body: SecretUpdateSchema) -> None:
-        body.secret = encrypt(body.secret)
+        if body.secret is not None:                    
+            body.secret = encrypt(body.secret)
+            if self.secret_repository.update_secret(access_key=access_key, secret=body.secret) is not None:
+                self.secret_cache_repository.update_value_and_refresh(access_key=access_key, new_secret=body.secret)
+            else:
+                raise HTTPException(status_code=404)
         
-        if self.secret_repository.update_secret(access_key=access_key, body=body) is not None:
-            self.secret_cache_repository.update_value_and_refresh(access_key=access_key, new_secret=body.secret)
-            if body.additional_ttl_seconds is not None:
+        if body.additional_ttl_seconds is not None:
+            if self.secret_repository.update_time(access_key=access_key, additional_ttl_seconds=body.additional_ttl_seconds) is not None:
+                self.secret_cache_repository.refresh_ttl(access_key=access_key)
                 try:
                     update_schedule(access_key=access_key, additional_ttl_seconds=body.additional_ttl_seconds)
                 except Exception as e:
                     print(f"Secret updated but scheduling failed: {e}")
-        else:
-            raise HTTPException(status_code=404)
+            else:
+                raise HTTPException(status_code=404)
         
     
     def delete_secret(self, access_key: str) -> None:
