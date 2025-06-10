@@ -25,7 +25,7 @@ class SecretService:
             print('\n from redis \n')
             return encrypted_secret
         if secret_schema := self.secret_repository.get_secret(access_key=access_key):
-            # self.secret_cache_repository.set_secret(access_key=access_key, secret=secret_schema.secret)
+            self.secret_cache_repository.set_secret(access_key=access_key, secret=secret_schema.secret)
             encrypted_secret = decrypt(secret_schema.secret)
             print('\n from postgres \n')
             return encrypted_secret
@@ -37,7 +37,7 @@ class SecretService:
         access_key = str(uuid4())
 
         if created_secret := self.secret_repository.create_secret(body=body, access_key=access_key):
-            self.secret_cache_repository.set_secret(access_key=access_key, secret=body)
+            self.secret_cache_repository.set_secret(access_key=access_key, secret=body.secret)
             try:
                 schedule_secret_deletion(access_key=access_key, ttl_seconds=body.ttl_seconds)
             except Exception as e:

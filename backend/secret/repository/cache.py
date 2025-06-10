@@ -6,20 +6,13 @@ class SecretCacheRepository:
     def __init__(self, redis: Redis):
         self.redis = redis
 
-    def set_secret(self, access_key: str, secret: SecretCreateSchema) -> None:
+    def set_secret(self, access_key: str, secret: str) -> None:
         with self.redis as redis:
-            if secret.ttl_seconds > 30:
-                redis.setex(
-                    name=access_key, 
-                    time=30, 
-                    value=secret.secret
-                )
-            else:
-                redis.setex(
-                    name=access_key, 
-                    time=secret.ttl_seconds, 
-                    value=secret.secret
-                )
+            redis.setex(
+                name=access_key, 
+                time=30, 
+                value=secret
+            )
 
     def get_secret_by_access_key(self, access_key: str) -> str | None:
         with self.redis as redis:

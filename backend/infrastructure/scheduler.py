@@ -27,6 +27,10 @@ def delete_secret_job(access_key: str):
         # Логирование ошибки, если необходимо
         print(f"Error deleting secret {access_key}: {e}")
         db.rollback()
+    try:
+        from infrastructure.cache import redis_conn
+        from secret.repository.cache import SecretCacheRepository
+        SecretCacheRepository(redis=redis_conn).delete_secret_by_access_key(access_key=access_key)
     finally:
         db.close()
 
