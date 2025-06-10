@@ -13,6 +13,10 @@ const api = axios.create({
 // Обработчик ошибок
 const handleError = (error) => {
   if (error.response) {
+    // Для 422 ошибки возвращаем весь объект ошибки
+    if (error.response.status === 422) {
+      throw error; // Передаем как есть для специальной обработки
+    }
     // Сервер ответил с кодом ошибки
     throw new Error(error.response.data.detail || 'An error occurred');
   } else if (error.request) {

@@ -4,7 +4,7 @@ from typing import Optional
 
 class SecretCreateSchema(BaseModel):
     secret: str
-    ttl_seconds: int = Field(gt=0, description="Должно быть числом больше 0")
+    ttl_seconds: int = Field(gt=0, le=31536000, description="Должно быть числом больше 0")
 
 class SecretSchema(BaseModel):
     access_key: str
