@@ -3,7 +3,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from typing import Optional
 
 from infrastructure.models import SecretModel
-from secret.schemas import SecretSchema, SecretCreateSchema, SecretUpdateSchema
+from secret.schemas import SecretSchema, SecretCreateSchema
 
 class SecretRepository:
     def __init__(self, db_session: AsyncSession):

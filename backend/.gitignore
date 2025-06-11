@@ -1,6 +1,4 @@
 .env
-alembic.ini
-alembic
 .venv
 poetry.lock
 pyproject.toml
@@ -9,3 +7,4 @@ __pycache__/
 *.pyo
 *.pyd
 .python-version
+migrations/versions

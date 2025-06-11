@@ -1,0 +1,50 @@
+version: '3.8'
+
+services:
+  db:
+    image: postgres:16.3-alpine3.19
+    environment:
+      POSTGRES_DB: mydatabase
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: 321
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    networks:
+      - app-network
+
+  redis:
+    image: redis:7.2-alpine3.19
+    networks:
+      - app-network
+
+  backend:
+    build: ./backend
+    depends_on:
+      - db
+      - redis
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: 321
+      POSTGRES_DB: mydatabase
+    ports:
+      - "8000:8000"
+    networks:
+      - app-network
+
+  frontend:
+    build: ./frontend
+    depends_on:
+      - backend
+    ports:
+      - "5173:5173"
+    environment:
+      VITE_API_BASE: http://backend:8000
+    networks:
+      - app-network
+
+networks:
+  app-network:
+    driver: bridge
+
+volumes:
+  postgres_data:

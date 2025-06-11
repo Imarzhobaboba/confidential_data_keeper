@@ -1,7 +1,6 @@
 from sqlalchemy.orm import DeclarativeBase, declared_attr, Mapped, mapped_column
-from sqlalchemy import func, String, text
+from sqlalchemy import func, String
 from datetime import datetime
-from typing import Optional
 
 from infrastructure.database import engine
 
