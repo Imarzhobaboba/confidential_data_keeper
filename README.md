@@ -43,8 +43,8 @@
 
 ```bash
 # 1. Клонирование репозитория
-git clone https://github.com/your-username/secret-sharing-platform.git
-cd secret-sharing-platform
+git clone https://github.com/Imarzhobaboba/confidential_data_keeper.git
+cd confidential_data_keeper
 
 # 2. Запуск (сборка + инициализация)
 docker-compose up --build -d
