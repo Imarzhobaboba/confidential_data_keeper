@@ -65,6 +65,9 @@ class SecretService:
                     print(f"Secret updated but scheduling failed: {e}")
             else:
                 raise HTTPException(status_code=404)
+            
+        if body.secret is None and body.additional_ttl_seconds is None:
+            raise HTTPException(status_code=422)
         
     
     def delete_secret(self, access_key: str) -> None:

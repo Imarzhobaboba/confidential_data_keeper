@@ -26,7 +26,12 @@ const UpdateSecret = () => {
         form.resetFields();
       }
     } catch (error) {
-      message.error(`Error: ${error.message}`);
+      if (error.response?.status === 422) {
+        message.error(`Error: incorrect input`);
+      }
+      else {
+        message.error(`Error: ${error.message}`);
+      }
     } finally {
       setLoading(false);
     }
