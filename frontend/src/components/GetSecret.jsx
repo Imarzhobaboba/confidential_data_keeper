@@ -48,9 +48,9 @@ const GetSecret = () => {
             rows={4} 
             style={{ backgroundColor: '#fffbe6' }} 
           />
-          <p style={{ color: '#ff4d4f', marginTop: '8px' }}>
+          {/* <p style={{ color: '#ff4d4f', marginTop: '8px' }}>
             ⚠️ This secret has been deleted from our system and can no longer be accessed
-          </p>
+          </p> */}
         </div>
       )}
     </div>

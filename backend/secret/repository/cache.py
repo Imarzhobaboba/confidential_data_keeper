@@ -1,31 +1,28 @@
-from redis import Redis
-
+from redis.asyncio import Redis
 from secret.schemas import SecretCreateSchema
 
 class SecretCacheRepository:
     def __init__(self, redis: Redis):
         self.redis = redis
 
-    def set_secret(self, access_key: str, secret: str) -> None:
-        with self.redis as redis:
-            redis.setex(
-                name=access_key, 
-                time=30, 
-                value=secret
-            )
+    async def set_secret(self, access_key: str, secret: str) -> None:
+        await self.redis.setex(
+            name=access_key, 
+            time=30, 
+            value=secret
+        )
 
-    def get_secret_by_access_key(self, access_key: str) -> str | None:
-        with self.redis as redis:
-            if cached_secret := redis.get(name=access_key):
-                return cached_secret.decode('utf-8')
+    async def get_secret_by_access_key(self, access_key: str) -> str | None:
+        if cached_secret := await self.redis.get(name=access_key):
+            return cached_secret.decode('utf-8')
+        return None
             
-    def update_value_and_refresh(self, access_key: str, new_secret: str) -> None:
-        with self.redis as redis:
-            redis.pipeline(transaction=True).set(name=access_key, value=new_secret, ex=30).execute()
+    async def update_value_and_refresh(self, access_key: str, new_secret: str) -> None:
+        async with self.redis.pipeline(transaction=True) as pipe:
+            await pipe.set(name=access_key, value=new_secret, ex=30).execute()
             
-    def delete_secret_by_access_key(self, access_key: str) -> None:
-        with self.redis as redis:
-            redis.delete(access_key)
+    async def delete_secret_by_access_key(self, access_key: str) -> None:
+        await self.redis.delete(access_key)
             
-    def refresh_ttl(self, access_key: str) -> None:
-        self.redis.expire(name=access_key, time=30)
+    async def refresh_ttl(self, access_key: str) -> None:
+        await self.redis.expire(name=access_key, time=30)

@@ -1,43 +1,36 @@
-from apscheduler.schedulers.background import BackgroundScheduler
+from apscheduler.schedulers.asyncio import AsyncIOScheduler
 from apscheduler.jobstores.sqlalchemy import SQLAlchemyJobStore
 from datetime import datetime, timedelta
 from sqlalchemy import delete, select
-from sqlalchemy.orm import Session
-from infrastructure.models import SecretModel
-from infrastructure.database import SessionLocal
 from config import settings
 
-# Настройка планировщика
+from infrastructure.database import async_session
+from infrastructure.models import SecretModel
+
+# Используем синхронный URL для APScheduler
+SYNC_DATABASE_URL = settings.DATABASE_URL.replace('postgresql+asyncpg', 'postgresql')
+
 jobstores = {
-    'default': SQLAlchemyJobStore(url=settings.DATABASE_URL)
+    'default': SQLAlchemyJobStore(url=SYNC_DATABASE_URL)
 }
 
-scheduler = BackgroundScheduler(jobstores=jobstores)
+scheduler = AsyncIOScheduler(jobstores=jobstores)
 
-def delete_secret_job(access_key: str):
-    """
-    Задача для удаления секрета по истечении времени
-    """
-    db = SessionLocal()
-    try:
-        query = delete(SecretModel).where(SecretModel.access_key == access_key)
-        db.execute(query)
-        db.commit()
-    except Exception as e:
-        # Логирование ошибки, если необходимо
-        print(f"Error deleting secret {access_key}: {e}")
-        db.rollback()
-    try:
-        from infrastructure.cache import redis_conn
-        from secret.repository.cache import SecretCacheRepository
-        SecretCacheRepository(redis=redis_conn).delete_secret_by_access_key(access_key=access_key)
-    finally:
-        db.close()
+async def delete_secret_job(access_key: str):
+    async with async_session() as db:
+        try:
+            query = delete(SecretModel).where(SecretModel.access_key == access_key)
+            await db.execute(query)
+            await db.commit()
+            
+            from infrastructure.cache import redis_conn
+            from secret.repository.cache import SecretCacheRepository
+            await SecretCacheRepository(redis=redis_conn).delete_secret_by_access_key(access_key=access_key)
+        except Exception as e:
+            await db.rollback()
+            print(f"Error deleting secret {access_key}: {e}")
 
 def schedule_secret_deletion(access_key: str, ttl_seconds: int):
-    """
-    Запланировать удаление секрета через указанное количество секунд
-    """
     scheduler.add_job(
         delete_secret_job,
         'date',
@@ -60,35 +53,33 @@ def update_schedule(access_key: str, additional_ttl_seconds: int):
         run_date=new_run_time
     )
 
-def cleanup_expired_secrets():
-    """Очистка просроченных секретов при запуске"""
-    db = SessionLocal()
-    try:
-        # Удаляем все просроченные секреты
-        expired_query = delete(SecretModel).where(
-            SecretModel.expires_at <= datetime.now()
-        )
-        db.execute(expired_query)
-        
-        # Перепланируем активные секреты
-        active_secrets = db.execute(
-            select(SecretModel.access_key, SecretModel.expires_at)
-            .where(SecretModel.expires_at > datetime.now())
-        ).all()
-        
-        for access_key, expires_at in active_secrets:
-            schedule_secret_deletion(access_key, expires_at)
+async def cleanup_expired_secrets():
+    async with async_session() as db:
+        try:
+            # Удаляем просроченные секреты
+            expired_query = delete(SecretModel).where(
+                SecretModel.expires_at <= datetime.now()
+            )
+            await db.execute(expired_query)
             
-        db.commit()
-    except Exception as e:
-        db.rollback()
-    finally:
-        db.close()
+            # Перепланируем активные секреты
+            active_secrets = (await db.execute(
+                select(SecretModel.access_key, SecretModel.expires_at)
+                .where(SecretModel.expires_at > datetime.now())
+            )).all()
+            
+            for access_key, expires_at in active_secrets:
+                ttl_seconds = (expires_at - datetime.now()).total_seconds()
+                schedule_secret_deletion(access_key, int(ttl_seconds))
+            
+            await db.commit()
+        except Exception as e:
+            await db.rollback()
+            raise
 
 def start_scheduler():
-    """
-    Запустить планировщик (вызывается при старте приложения)
-    """
     if not scheduler.running:
-        cleanup_expired_secrets()
+        # Запускаем cleanup в event loop
+        import asyncio
+        asyncio.create_task(cleanup_expired_secrets())
         scheduler.start()

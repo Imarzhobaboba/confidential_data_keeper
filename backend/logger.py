@@ -1,9 +1,8 @@
 from fastapi import Request
-from sqlalchemy.orm import Session
+from sqlalchemy.ext.asyncio import AsyncSession
 from infrastructure.models import RequestLog
 
-
-async def log_request(request: Request, call_next, db: Session):
+async def log_request(request: Request, call_next, db: AsyncSession):
     response = await call_next(request)
 
     if request.url.path.startswith(("/docs", "/openapi.json", "/redoc")):
@@ -17,6 +16,6 @@ async def log_request(request: Request, call_next, db: Session):
     )
     
     db.add(log)
-    db.commit()
+    await db.commit()
     
     return response
