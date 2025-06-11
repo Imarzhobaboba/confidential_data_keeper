@@ -1,6 +1,6 @@
 #!/bin/sh
 
-# Генерация .env если отсутствует
+# Генерация .env
 if [ ! -f .env ]; then
   echo "Generating .env file..."
   python -c "from cryptography.fernet import Fernet; print(f'FERNET_ENCRYPTION_KEY={Fernet.generate_key().decode()}')" > .env
@@ -10,6 +10,12 @@ if [ ! -f .env ]; then
   echo "REDIS_DB=0" >> .env
 fi
 
+# Ожидание PostgreSQL (альтернатива без nc)
+echo "Waiting for PostgreSQL..."
+while ! python -c "import socket; socket.create_connection(('db', 5432), timeout=1)" 2>/dev/null; do
+  sleep 1
+done
+echo "PostgreSQL is ready!"
 
 # Запуск сервера
 uvicorn main:app --host 0.0.0.0 --port 8000
