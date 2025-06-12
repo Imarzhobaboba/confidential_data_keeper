@@ -22,15 +22,14 @@ const SecretLifetime = () => {
     }
   };
 
-  const formatExpiration = (dateString) => {
-    const date = dayjs(dateString);
-    return date.format('YYYY-MM-DD HH:mm:ss');
+  const formatExpiration = (isoString) => {
+    const utcTime = dayjs(isoString).format('YYYY-MM-DD HH:mm:ss [UTC]');
+    const moscowTime = dayjs(isoString).add(3, 'hour').format('YYYY-MM-DD HH:mm:ss [MSK]');
+    return `${utcTime} / ${moscowTime}`;
   };
 
-  const calculateRemaining = (dateString) => {
-    const now = dayjs();
-    const expiration = dayjs(dateString);
-    return expiration.diff(now, 'second');
+  const calculateRemaining = (isoString) => {
+    return dayjs(isoString).diff(dayjs(), 'second') + 10800;
   };
 
   return (
@@ -54,16 +53,14 @@ const SecretLifetime = () => {
       {expiresAt && (
         <div style={{ marginTop: '20px' }}>
           <Statistic
-            title="Expiration Date"
+            title="Expiration Date (UTC / MSK)"
             value={formatExpiration(expiresAt)}
-            style={{ marginBottom: '16px' }}
           />
-          
           <Statistic
             title="Remaining Time"
             value={`${calculateRemaining(expiresAt)} seconds`}
             valueStyle={{
-              color: calculateRemaining(expiresAt) > 3600 ? '#389e0d' : '#cf1322'
+              color: calculateRemaining(expiresAt) > 60 ? '#389e0d' : '#cf1322'
             }}
           />
         </div>
