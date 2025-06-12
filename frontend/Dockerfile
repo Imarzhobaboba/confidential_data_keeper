@@ -5,14 +5,17 @@ WORKDIR /app
 
 # Установка зависимостей
 COPY package*.json ./
-RUN npm install --force
+RUN npm install
 
 # Копирование исходников
 COPY . .
+
+# Указываем Vite слушать все интерфейсы
+ENV HOST=0.0.0.0
 
 # Сборка проекта
 RUN npm run build
 
 EXPOSE 5173
 
-CMD ["npm", "run", "preview"]
+CMD ["npm", "run", "preview", "--", "--host"]
